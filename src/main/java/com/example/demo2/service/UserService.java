@@ -1,31 +1,52 @@
-package com.example.demo.service;
+package com.example.demo2.service;
 
-import com.example.demo.model.User;
-import com.example.demo.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.demo2.model.dto.UserDTO;
+import com.example.demo2.model.dto.UserRequestDTO;
+import com.example.demo2.model.entities.UserModel;
+import com.example.demo2.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private static UserDTO mapToDTO(UserModel userSaved) {
+        var userDTO = new UserDTO();
+        userDTO.setId(userSaved.getId());
+        userDTO.setUsername(userSaved.getUsername());
+        return userDTO;
+    }
 
-    public void registerUser(String username, String password) {
-        if (userRepository.existsByUsername(username)) {
+    public UserDTO register(UserRequestDTO userRequestDTO) {
+        if (userRepository.existsByUsername(userRequestDTO.getUsername())) {
             throw new IllegalArgumentException("El usuario ya existe.");
         }
 
-        // Crear el hash de la contraseña
-        String passwordHash = passwordEncoder.encode(password);
+        var passwordHash = passwordEncoder.encode(userRequestDTO.getPassword());
+        userRequestDTO.setPassword(passwordHash);
 
-        // Guardar el usuario en la base de datos
-        User user = new User();
-        user.setUsername(username);
-        user.setPasswordHash(passwordHash);
-        userRepository.save(user);
+        var user = mapToEntity(userRequestDTO);
+        var userSaved = userRepository.save(user);
+        return mapToDTO(userSaved);
     }
+
+    public UserDTO getUserByUsername(String username) {
+        var userFounded = userRepository.findByUsername(username);
+        return mapToDTO(userFounded);
+    }
+
+    private UserModel mapToEntity(UserRequestDTO userRequestDTO) {
+        var user = new UserModel();
+        user.setUsername(userRequestDTO.getUsername());
+        user.setPasswordHash(userRequestDTO.getPassword());
+        return user;
+    }
+
 }

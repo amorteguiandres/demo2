@@ -1,25 +1,30 @@
-package com.example.demo.controller;
+package com.example.demo2.controller;
 
-import com.example.demo.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import com.example.demo2.model.dto.UserDTO;
+import com.example.demo2.model.dto.UserRequestDTO;
+import com.example.demo2.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/users")
+@RequiredArgsConstructor
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
     @PostMapping("/register")
-    public String registerUser(@RequestParam String username, @RequestParam String password) {
-        try {
-            userService.registerUser(username, password);
-            return "Usuario registrado exitosamente.";
-        } catch (IllegalArgumentException e) {
-            return e.getMessage();
-        } catch (Exception e) {
-            return "Ocurrió un error.";
-        }
+    public UserDTO registerUser(@RequestBody UserRequestDTO userRequestDTO) {
+        return userService.register(userRequestDTO);
+    }
+
+    @GetMapping("/{username}")
+    public UserDTO getUserByUsername(@PathVariable String username) {
+        return userService.getUserByUsername(username);
     }
 }

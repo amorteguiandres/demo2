@@ -1,24 +1,16 @@
-package com.example.demo.repository;
+package com.example.demo2.repository;
 
-import com.example.demo.model.User;
-import org.springframework.jdbc.core.JdbcTemplate;
+import com.example.demo2.model.entities.UserModel;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.UUID;
 
 @Repository
-public class UserRepository {
+public interface UserRepository extends JpaRepository<UserModel, UUID> {
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    boolean existsByUsername(String email);
 
-    public void save(User user) {
-        String sql = "INSERT INTO users (username, password_hash) VALUES (?, ?)";
-        jdbcTemplate.update(sql, user.getUsername(), user.getPasswordHash());
-    }
-
-    public boolean existsByUsername(String username) {
-        String sql = "SELECT COUNT(*) FROM users WHERE username = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, username);
-        return count != null && count > 0;
-    }
+    //@Query("select c from UserModel c where c.username =:username")
+    UserModel findByUsername(String username);
 }
